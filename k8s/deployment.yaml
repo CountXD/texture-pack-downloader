@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: texture-pack-downloader
+  labels:
+    app: texture-pack-downloader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: texture-pack-downloader
+  template:
+    metadata:
+      labels:
+        app: texture-pack-downloader
+    spec:
+      containers:
+      - name: app
+        image: texture-pack-downloader:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PORT
+          value: "3000"
+        - name: GITHUB_USERNAME
+          value: "CountXD"
+        # Optional: Add GitHub token for higher rate limits
+        # - name: GITHUB_TOKEN
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: github-token
+        #       key: token
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"

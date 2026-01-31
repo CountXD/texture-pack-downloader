@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Texture Pack Downloader</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎮 Texture Pack Downloader</h1>
+      <p class="subtitle">Download your Minecraft texture packs from GitHub</p>
+    </header>
+    
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Loading repositories...</p>
+    </div>
+    
+    <div id="repos" class="repos-grid"></div>
+    
+    <div id="error" class="error" style="display: none;"></div>
+  </div>
+  
+  <script src="app.js"></script>
+</body>
+</html>
