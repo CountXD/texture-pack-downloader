@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
       - name: app
-        image: texture-pack-downloader:latest
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/countxd/texture-pack-downloader:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
         env:
