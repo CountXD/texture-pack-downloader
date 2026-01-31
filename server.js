@@ -119,14 +119,16 @@ app.get('/api/repos/:owner/:repo/download', async (req, res) => {
     try {
         const { owner, repo } = req.params;
         const branch = req.query.branch || 'main';
+        const suffix = req.query.suffix || ''; // Optional suffix
 
         // Get all files in repo
         const files = await getRepoTree(owner, repo, branch);
 
         // Set up ZIP response
-        // Set up ZIP response
         res.setHeader('Content-Type', 'application/zip');
-        res.setHeader('Content-Disposition', `attachment; filename="${repo}-${branch}.zip"`);
+        // Clean suffix to avoid injection, though simple string concatenation is mostly safe for filenames
+        const safeSuffix = suffix.replace(/[^a-zA-Z0-9._-]/g, '');
+        res.setHeader('Content-Disposition', `attachment; filename="${repo}-${branch}${safeSuffix ? '-' + safeSuffix : ''}.zip"`);
 
         // Use standard compression (level 1) for speed instead of max (level 9)
         const archive = archiver('zip', { zlib: { level: 1 } });

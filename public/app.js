@@ -50,14 +50,26 @@ function renderRepos() {
         <a href="${repo.html_url}" target="_blank" class="repo-name">${repo.name}</a>
       </div>
       <p class="repo-description">${repo.description || 'No description'}</p>
+      <div class="repo-controls">
+        <div class="control-group">
+          <label class="control-label">Versions:</label>
+          <div class="branch-grid" id="branches-${repo.name}">
+            <div class="loading-branches">Loading versions...</div>
+          </div>
+        </div>
+        
+        <div class="control-group">
+          <label class="control-label">Suffix:</label>
+          <input type="text" class="suffix-input" placeholder="-pack" data-repo="${repo.name}">
+        </div>
+      </div>
+      
       <div class="repo-actions">
-        <select class="branch-select" data-repo="${repo.name}">
-          <option value="${repo.default_branch}">${repo.default_branch}</option>
-        </select>
         <button class="download-btn" onclick="downloadRepo('${repo.name}')">
-          📥 Download ZIP
+          📥 Download Selected
         </button>
       </div>
+      
       <div class="repo-meta">
         Updated: ${formatDate(repo.updated_at)}
       </div>
@@ -75,12 +87,17 @@ async function loadBranches(repoName) {
         if (!response.ok) return;
 
         const branches = await response.json();
-        const select = document.querySelector(`.branch-select[data-repo="${repoName}"]`);
+        const container = document.getElementById(`branches-${repoName}`);
 
-        if (select && branches.length > 0) {
-            select.innerHTML = branches.map(branch =>
-                `<option value="${branch}">${branch}</option>`
-            ).join('');
+        if (container && branches.length > 0) {
+            container.innerHTML = branches.map((branch, index) => `
+        <label class="branch-checkbox">
+          <input type="checkbox" name="branch" value="${branch}" ${index === 0 ? 'checked' : ''}>
+          <span>${branch}</span>
+        </label>
+      `).join('');
+        } else if (container) {
+            container.innerHTML = '<div class="no-branches">No branches found</div>';
         }
     } catch (error) {
         console.error(`Failed to load branches for ${repoName}:`, error);
@@ -89,39 +106,60 @@ async function loadBranches(repoName) {
 
 // Download repository as ZIP
 async function downloadRepo(repoName) {
-    const select = document.querySelector(`.branch-select[data-repo="${repoName}"]`);
-    const branch = select ? select.value : 'main';
+    const container = document.getElementById(`branches-${repoName}`);
+    if (!container) return;
+
+    const checkedBoxes = container.querySelectorAll('input[type="checkbox"]:checked');
+    const suffixInput = document.querySelector(`.suffix-input[data-repo="${repoName}"]`);
+    const suffix = suffixInput ? suffixInput.value.trim() : '';
+
+    if (checkedBoxes.length === 0) {
+        alert('Please select at least one version to download.');
+        return;
+    }
+
     const btn = document.querySelector(`.repo-card[data-repo="${repoName}"] .download-btn`);
 
     // Update button state
     const originalText = btn.innerHTML;
-    btn.innerHTML = '⏳ Downloading...';
+    btn.innerHTML = `⏳ Queueing ${checkedBoxes.length} downloads...`;
     btn.disabled = true;
     btn.classList.add('loading');
 
     try {
-        const url = `${API_BASE}/api/repos/CountXD/${repoName}/download?branch=${encodeURIComponent(branch)}`;
+        // Process downloads sequentially with delay to prevent browser blocking
+        const branches = Array.from(checkedBoxes).map(cb => cb.value);
 
-        // Trigger download
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${repoName}-${branch}.zip`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        for (let i = 0; i < branches.length; i++) {
+            const branch = branches[i];
+            const url = `${API_BASE}/api/repos/CountXD/${repoName}/download?branch=${encodeURIComponent(branch)}&suffix=${encodeURIComponent(suffix)}`;
 
-        // Restore button after a delay
+            // Trigger download
+            const link = document.createElement('a');
+            link.href = url;
+            // Note: download attribute is often ignored for cross-origin or dynamic content headers, 
+            // but the server Content-Disposition header handles the naming
+            link.download = '';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Small delay between downloads
+            if (i < branches.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+
+        btn.innerHTML = '✅ All Started!';
         setTimeout(() => {
-            btn.innerHTML = '✅ Downloaded!';
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                btn.classList.remove('loading');
-            }, 2000);
-        }, 1000);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            btn.classList.remove('loading');
+        }, 2000);
+
     } catch (error) {
         console.error('Download failed:', error);
-        btn.innerHTML = '❌ Failed';
+        btn.innerHTML = '❌ Error';
         setTimeout(() => {
             btn.innerHTML = originalText;
             btn.disabled = false;

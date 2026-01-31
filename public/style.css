@@ -72,8 +72,13 @@ header h1 {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Repos Grid */
@@ -123,25 +128,84 @@ header h1 {
   margin-bottom: 1rem;
 }
 
-.repo-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.branch-select {
+.repo-controls {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  color: var(--text-primary);
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
-  cursor: pointer;
-  min-width: 120px;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
 }
 
-.branch-select:focus {
+.control-group {
+  margin-bottom: 1rem;
+}
+
+.control-group:last-child {
+  margin-bottom: 0;
+}
+
+.control-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.branch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Custom Checkbox Styling */
+.branch-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.branch-checkbox:hover {
+  border-color: var(--accent);
+}
+
+.branch-checkbox input:checked+span {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Scrollbar for branch grid */
+.branch-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.branch-grid::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.suffix-input {
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.6rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.suffix-input:focus {
   outline: none;
   border-color: var(--accent);
 }
@@ -149,6 +213,8 @@ header h1 {
 .download-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   gap: 0.5rem;
   background: linear-gradient(135deg, var(--success) 0%, #238636 100%);
   color: white;
@@ -213,21 +279,22 @@ header h1 {
   .container {
     padding: 1rem;
   }
-  
+
   header h1 {
     font-size: 1.75rem;
   }
-  
+
   .repo-header {
     flex-direction: column;
   }
-  
+
   .repo-actions {
     flex-direction: column;
     align-items: stretch;
   }
-  
-  .branch-select, .download-btn {
+
+  .branch-select,
+  .download-btn {
     width: 100%;
     justify-content: center;
   }
