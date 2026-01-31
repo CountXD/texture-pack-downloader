@@ -78,13 +78,16 @@ app.get('/api/repos', async (req, res) => {
         const repos = await githubRequest(`/users/${GITHUB_USERNAME}/repos?per_page=100&sort=updated`);
 
         // Filter to only repos that might be texture packs (have assets folder or pack.mcmeta)
-        const repoList = repos.map(repo => ({
-            name: repo.name,
-            description: repo.description,
-            default_branch: repo.default_branch,
-            updated_at: repo.updated_at,
-            html_url: repo.html_url
-        }));
+        // Also exclude the downloader webapp itself
+        const repoList = repos
+            .filter(repo => repo.name !== 'texture-pack-downloader')
+            .map(repo => ({
+                name: repo.name,
+                description: repo.description,
+                default_branch: repo.default_branch,
+                updated_at: repo.updated_at,
+                html_url: repo.html_url
+            }));
 
         res.json(repoList);
     } catch (error) {
