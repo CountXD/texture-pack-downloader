@@ -124,21 +124,30 @@ app.get('/api/repos/:owner/:repo/download', async (req, res) => {
         const files = await getRepoTree(owner, repo, branch);
 
         // Set up ZIP response
+        // Set up ZIP response
         res.setHeader('Content-Type', 'application/zip');
         res.setHeader('Content-Disposition', `attachment; filename="${repo}-${branch}.zip"`);
 
-        const archive = archiver('zip', { zlib: { level: 9 } });
+        // Use standard compression (level 1) for speed instead of max (level 9)
+        const archive = archiver('zip', { zlib: { level: 1 } });
         archive.pipe(res);
 
-        // Download and add each file to ZIP
-        for (const file of files) {
-            try {
-                const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${file.path}`;
-                const content = await downloadFile(url);
-                archive.append(content, { name: file.path });
-            } catch (err) {
-                console.error(`Failed to download ${file.path}:`, err.message);
-            }
+        // Download files in parallel batches to speed up performance
+        const BATCH_SIZE = 10;
+
+        for (let i = 0; i < files.length; i += BATCH_SIZE) {
+            const batch = files.slice(i, i + BATCH_SIZE);
+
+            // Download batch in parallel
+            await Promise.all(batch.map(async (file) => {
+                try {
+                    const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${file.path}`;
+                    const content = await downloadFile(url);
+                    archive.append(content, { name: file.path });
+                } catch (err) {
+                    console.error(`Failed to download ${file.path}:`, err.message);
+                }
+            }));
         }
 
         await archive.finalize();
