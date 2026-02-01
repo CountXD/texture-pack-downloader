@@ -137,8 +137,12 @@ app.get('/api/repos/:owner/:repo/download', async (req, res) => {
         // Download files in parallel batches to speed up performance
         const BATCH_SIZE = 10;
 
+        // Files to exclude
+        const EXCLUDED_FILES = ['README.md', '.gitattributes', '.gitignore'];
+
         for (let i = 0; i < files.length; i += BATCH_SIZE) {
-            const batch = files.slice(i, i + BATCH_SIZE);
+            const batch = files.slice(i, i + BATCH_SIZE)
+                .filter(file => !EXCLUDED_FILES.some(ex => file.path.toLowerCase().endsWith(ex.toLowerCase())));
 
             // Download batch in parallel
             await Promise.all(batch.map(async (file) => {
